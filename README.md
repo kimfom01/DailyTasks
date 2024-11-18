@@ -1,1 +1,1 @@
-# DailyTasks
+# Daily Tasks—Your simple tasks catalog
