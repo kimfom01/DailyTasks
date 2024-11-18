@@ -1,8 +1,32 @@
-﻿namespace DailyTasks.ViewModels;
+﻿using System.Collections.ObjectModel;
+using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
+
+namespace DailyTasks.ViewModels;
 
 public partial class MainWindowViewModel : ViewModelBase
 {
-#pragma warning disable CA1822 // Mark members as static
-    public string Greeting => "Welcome to Avalonia!";
-#pragma warning restore CA1822 // Mark members as static
+    public ObservableCollection<ToDoItemViewModel> ToDoItems { get; } = [];
+
+    [ObservableProperty] [NotifyCanExecuteChangedFor(nameof(AddItemCommand))]
+    private string? _newItemContent;
+
+    private bool CanAddItem() => !string.IsNullOrWhiteSpace(NewItemContent);
+
+    [RelayCommand(CanExecute = nameof(CanAddItem))]
+    private void AddItem()
+    {
+        ToDoItems.Add(new ToDoItemViewModel
+        {
+            Content = NewItemContent
+        });
+
+        NewItemContent = null;
+    }
+
+    [RelayCommand]
+    private void DeleteItem(ToDoItemViewModel item)
+    {
+        ToDoItems.Remove(item);
+    }
 }
