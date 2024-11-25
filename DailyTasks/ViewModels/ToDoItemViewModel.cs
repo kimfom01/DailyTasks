@@ -1,4 +1,9 @@
+using System;
+using System.Threading.Tasks;
+using Avalonia;
+using Avalonia.Controls.ApplicationLifetimes;
 using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
 using DailyTasks.Models;
 
 namespace DailyTasks.ViewModels;
@@ -24,4 +29,14 @@ public partial class ToDoItemViewModel : ViewModelBase
         IsChecked = IsChecked,
         Content = Content
     };
+
+    [RelayCommand]
+    private async Task Copy(string? content)
+    {
+        if (Application.Current?.ApplicationLifetime is not IClassicDesktopStyleApplicationLifetime desktop
+            || desktop.MainWindow?.Clipboard is not { } provider)
+            throw new NullReferenceException("Missing Clipboard Instance");
+
+        await provider.SetTextAsync(content);
+    }
 }

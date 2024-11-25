@@ -25,10 +25,16 @@
                 <ItemsControl.ItemTemplate>
                     <DataTemplate DataType="vm:ToDoItemViewModel">
                         <Grid ColumnDefinitions="*, Auto">
-                            <CheckBox Content="{Binding Content}" IsChecked="{Binding IsChecked}" />
+                            <CheckBox IsChecked="{Binding IsChecked}" Content="{Binding Content}">
+                                <CheckBox.ContextMenu>
+                                    <ContextMenu>
+                                        <MenuItem Header="Copy" Command="{Binding CopyCommand}"
+                                                  CommandParameter="{Binding Content}" />
+                                    </ContextMenu>
+                                </CheckBox.ContextMenu>
+                            </CheckBox>
                             <Button Command="{Binding #Root.((vm:MainWindowViewModel)DataContext).DeleteItemCommand}"
                                     CommandParameter="{Binding .}" Grid.Column="1">
-                                
                                 <PathIcon Data="{DynamicResource DeleteIconData}" Foreground="Red" />
                             </Button>
                         </Grid>
