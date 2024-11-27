@@ -38,8 +38,6 @@ public partial class App : Application
                 DataContext = mainWindowViewModel,
             };
 
-            desktop.ShutdownRequested += DesktopOnShutDownRequested;
-
             var loadedItems = await storage.LoadAsync();
             foreach (var item in loadedItems)
             {
@@ -48,24 +46,5 @@ public partial class App : Application
         }
 
         base.OnFrameworkInitializationCompleted();
-    }
-
-    private bool _canClose;
-    private async void DesktopOnShutDownRequested(object? sender, ShutdownRequestedEventArgs e)
-    {
-        e.Cancel = !_canClose;
-
-        if (!_canClose)
-        {
-            // TODO: Move logic to where change actually occured, use DI to inject services
-            // var itemsToSave = _mainWindowViewModel.ToDoItems.Select(item => item.GetToDoItem());
-            // await FileStorageService.SaveToFileAsync(itemsToSave);
-
-            _canClose = true;
-            if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
-            {
-                desktop.Shutdown();
-            }
-        }
     }
 }
