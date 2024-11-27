@@ -1,11 +1,13 @@
-using System.Linq;
 using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Data.Core.Plugins;
 using Avalonia.Markup.Xaml;
+using DailyTasks.Extensions;
+using DailyTasks.Models;
 using DailyTasks.Services;
 using DailyTasks.ViewModels;
 using DailyTasks.Views;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace DailyTasks;
 
@@ -16,10 +18,16 @@ public partial class App : Application
         AvaloniaXamlLoader.Load(this);
     }
 
-    private readonly MainWindowViewModel _mainWindowViewModel = new();
-
     public override async void OnFrameworkInitializationCompleted()
     {
+        var collection = new ServiceCollection();
+        collection.RegisterServices();
+
+        var serviceProvider = collection.BuildServiceProvider();
+
+        var mainWindowViewModel = serviceProvider.GetRequiredService<MainWindowViewModel>();
+        var storage = serviceProvider.GetRequiredService<IStorage<ToDoItem>>();
+        
         if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
         {
             // Line below is needed to remove Avalonia data validation.
@@ -27,15 +35,15 @@ public partial class App : Application
             BindingPlugins.DataValidators.RemoveAt(0);
             desktop.MainWindow = new MainWindow
             {
-                DataContext = _mainWindowViewModel,
+                DataContext = mainWindowViewModel,
             };
 
             desktop.ShutdownRequested += DesktopOnShutDownRequested;
 
-            var loadedItems = await ToDoListFileService.LoadFromFileAsync();
+            var loadedItems = await storage.LoadAsync();
             foreach (var item in loadedItems)
             {
-                _mainWindowViewModel.ToDoItems.Add(new ToDoItemViewModel(item));
+                mainWindowViewModel.ToDoItems.Add(new ToDoItemViewModel(item));
             }
         }
 
@@ -49,8 +57,9 @@ public partial class App : Application
 
         if (!_canClose)
         {
-            var itemsToSave = _mainWindowViewModel.ToDoItems.Select(item => item.GetToDoItem());
-            await ToDoListFileService.SaveToFileAsync(itemsToSave);
+            // TODO: Move logic to where change actually occured, use DI to inject services
+            // var itemsToSave = _mainWindowViewModel.ToDoItems.Select(item => item.GetToDoItem());
+            // await FileStorageService.SaveToFileAsync(itemsToSave);
 
             _canClose = true;
             if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)

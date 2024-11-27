@@ -3,39 +3,38 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text.Json;
 using System.Threading.Tasks;
-using DailyTasks.Models;
 
 namespace DailyTasks.Services;
 
-public static class ToDoListFileService
+public class FileStorage<TItem> : IStorage<TItem>
 {
     private static readonly string JsonPath = Path.Combine(
         Environment.GetFolderPath(Environment.SpecialFolder.UserProfile),
         "DailyTasks", "database.json"
     );
 
-    public static async Task SaveToFileAsync(IEnumerable<ToDoItem> itemsToSave)
+    public async Task SaveAsync(IEnumerable<TItem> items)
     {
         Directory.CreateDirectory(Path.GetDirectoryName(JsonPath)!);
 
         await using var fileSystem = File.Create(JsonPath);
 
-        await JsonSerializer.SerializeAsync(fileSystem, itemsToSave);
+        await JsonSerializer.SerializeAsync(fileSystem, items);
     }
 
-    public static async Task<IEnumerable<ToDoItem>> LoadFromFileAsync()
+    public async Task<IEnumerable<TItem>> LoadAsync()
     {
-        Directory.CreateDirectory(Path.GetDirectoryName(JsonPath)!);
-
         try
         {
+            Directory.CreateDirectory(Path.GetDirectoryName(JsonPath)!);
+     
             await using var fileSystem = File.OpenRead(JsonPath);
 
-            var todoItems = await JsonSerializer.DeserializeAsync<IEnumerable<ToDoItem>>(fileSystem);
+            var todoItems = await JsonSerializer.DeserializeAsync<IEnumerable<TItem>>(fileSystem);
 
             return todoItems ?? [];
         }
-        catch (JsonException)
+        catch (Exception)
         {
             return [];
         }
